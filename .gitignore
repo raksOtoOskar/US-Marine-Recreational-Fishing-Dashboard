@@ -1,0 +1,16 @@
+# Środowiska wirtualne
+venv/
+env/
+.env
+
+# Dane
+data/raw/
+data/processed/
+
+# Cache Pythona
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Pliki systemowe 
+.DS_Store
