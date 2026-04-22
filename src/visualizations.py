@@ -44,38 +44,50 @@ def rysuj_trend_wyjazdow(df: pd.DataFrame):
     
     return fig
 
-def rysuj_heatmape_korelacji(df: pd.DataFrame):
+def rysuj_preferencje_termiczne(df: pd.DataFrame):
     """
-    Tworzy heatmapę (Seaborn) pokazującą korelacje między temperaturą oceanu a wynikami połowów.
+    Pokazuje rozkład temperatur dla top 10 gatunków.
+    WYKORZYSTUJE BIBLIOTEKĘ SEABORN (zgodnie z wymogami projektu).
     """
-    # Wybieramy tylko kolumny numeryczne do korelacji
-    kolumny_numeryczne = ['ocean_temp_c', 'catch_weight', 'catch_count']
-    dane_korelacji = df[kolumny_numeryczne].corr()
+    # 1. Filtrujemy dane
+    df_ryby = df[(df['species_name'].notna()) & (df['species_name'].astype(str) != 'None')].copy()
+    top_gatunki = df_ryby['species_name'].value_counts().nlargest(10).index
+    df_top = df_ryby[df_ryby['species_name'].isin(top_gatunki)]
     
-    # Zmiana nazw dla lepszej czytelności na wykresie
-    dane_korelacji.columns = ['Temp. Oceanu', 'Waga Połowu', 'Liczba Ryb']
-    dane_korelacji.index = ['Temp. Oceanu', 'Waga Połowu', 'Liczba Ryb']
-
-    fig, ax = plt.subplots(figsize=(8, 6))
-    sns.heatmap(
-        dane_korelacji, 
-        annot=True, 
-        cmap='coolwarm', 
-        fmt=".2f", 
-        linewidths=.5,
-        cbar_kws={'label': 'Współczynnik korelacji Pearsona'},
+    # 2. Tworzymy obiekt wykresu (Seaborn działa na bazie Matplotlib)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    # 3. Rysujemy piękny wykres pudełkowy w Seaborn
+    sns.boxplot(
+        data=df_top,
+        x='ocean_temp_c',
+        y='species_name',
+        palette='crest', # Profesjonalna, morska paleta barw
         ax=ax
     )
-    ax.set_title('Korelacja: Temperatura vs Wyniki Połowów', pad=20)
     
+    # 4. Kosmetyka wykresu
+    ax.set_title('Preferencje termiczne (Okna temperaturowe) dla top 10 gatunków', fontsize=14, pad=15)
+    ax.set_xlabel('Temperatura Oceanu (°C)', fontsize=12)
+    ax.set_ylabel('Gatunek Ryby', fontsize=12)
+    
+    # Dodajemy delikatną siatkę w tle dla czytelności
+    ax.grid(axis='x', linestyle='--', alpha=0.7)
+    
+    # Zwracamy gotową figurę
     return fig
 
 def rysuj_popularne_gatunki(df: pd.DataFrame):
     """
     Tworzy interaktywny wykres słupkowy (Altair) najpopularniejszych gatunków ryb.
     """
-    popularnosc = df.groupby('species_name')['catch_count'].sum().reset_index()
+    # Na wykresie pokazujemy tylko prawdziwe ryby, odrzucamy puste przeloty
+    df_ryby = df[(df['species_name'].notna()) & (df['species_name'].astype(str) != 'None')]
+    
+    popularnosc = df_ryby.groupby('species_name')['catch_count'].sum().reset_index()
     popularnosc = popularnosc.sort_values(by='catch_count', ascending=False).head(10)
+    
+    popularnosc['catch_count'] = popularnosc['catch_count'].round().astype(int)
     
     wykres = alt.Chart(popularnosc).mark_bar(color='#2ca02c').encode(
         x=alt.X('catch_count:Q', title='Łączna liczba złowionych sztuk'),

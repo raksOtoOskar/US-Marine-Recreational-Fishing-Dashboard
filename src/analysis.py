@@ -6,18 +6,11 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from typing import Dict, Any
 
-def perform_state_clustering(df: pd.DataFrame, n_clusters: int = 3) -> pd.DataFrame:
+def perform_state_clustering(df: pd.DataFrame, n_clusters: int = 4) -> pd.DataFrame:
     """
     Dokonuje segmentacji (K-Means) stanów nadmorskich na podstawie:
     - Całkowitej liczby wyjazdów
     - Średniej wagi połowu
-    
-    Args:
-        df (pd.DataFrame): Przetworzony zbiór danych NOAA.
-        n_clusters (int): Liczba klastrów.
-        
-    Returns:
-        pd.DataFrame: Zbiór stanów z przypisanymi etykietami klastrów.
     """
     # Agregacja danych do poziomu stanu
     state_metrics = df.groupby('state').agg(
@@ -29,7 +22,7 @@ def perform_state_clustering(df: pd.DataFrame, n_clusters: int = 3) -> pd.DataFr
     # Wyciągamy cechy do uczenia
     features = state_metrics[['total_trips', 'avg_catch_weight', 'total_catch_count']]
     
-    # Skalowanie danych (wymagane w K-Means)
+    # Skalowanie danych
     scaler = StandardScaler()
     scaled_features = scaler.fit_transform(features)
     
@@ -37,8 +30,18 @@ def perform_state_clustering(df: pd.DataFrame, n_clusters: int = 3) -> pd.DataFr
     kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
     state_metrics['cluster'] = kmeans.fit_predict(scaled_features)
     
-    # Zamiana id klastra na czytelną etykietę dla dashboardu
-    cluster_names = {0: "Wysoka Aktywność", 1: "Umiarkowane Połowy", 2: "Niska Aktywność"}
+    # Dynamiczne przypisywanie etykiet - teraz dla 4 klastrów
+    srednie_klastrow = state_metrics.groupby('cluster')['total_trips'].mean().sort_values()
+    posortowane_id = srednie_klastrow.index.tolist()
+    
+    # Dodajemy nową gradację
+    cluster_names = {
+        posortowane_id[0]: "Bardzo Niska Aktywność",
+        posortowane_id[1]: "Niska Aktywność",
+        posortowane_id[2]: "Umiarkowana Aktywność",
+        posortowane_id[3]: "Wysoka Aktywność"
+    }
+    
     state_metrics['cluster_label'] = state_metrics['cluster'].map(cluster_names).fillna("Inne")
     
     return state_metrics
@@ -54,9 +57,12 @@ def train_catch_weight_model(df: pd.DataFrame) -> tuple[Pipeline, float]:
     Returns:
         tuple: Wytrenowany pipeline (model) oraz wynik R^2 (dokładność) na zbiorze treningowym.
     """
-    # Wybór cech (Features) i zmiennej objaśnianej (Target)
-    X = df[['wave', 'state', 'species_name']]
-    y = df['catch_weight']
+    # Model uczy się tylko na udanych połowach (gdzie waga jest większa niż 0 i znany jest gatunek)
+    df_udane = df[(df['catch_weight'] > 0) & (df['species_name'].notna()) & (df['species_name'] != 'None')].copy()
+
+    # Wybór cech (Features) na podstawie PRZEFILTROWANEGO zbioru
+    X = df_udane[['wave', 'state', 'species_name']]
+    y = df_udane['catch_weight']
     
     # Tworzymy transformator dla zmiennych kategorycznych (stan, gatunek)
     categorical_features = ['state', 'species_name']
