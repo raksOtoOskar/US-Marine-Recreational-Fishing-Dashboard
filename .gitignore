@@ -3,10 +3,6 @@ venv/
 env/
 .env
 
-# Dane
-data/raw/
-data/processed/
-
 # Cache Pythona
 __pycache__/
 *.pyc

@@ -47,22 +47,21 @@ def rysuj_trend_wyjazdow(df: pd.DataFrame):
 def rysuj_preferencje_termiczne(df: pd.DataFrame):
     """
     Pokazuje rozkład temperatur dla top 10 gatunków.
-    WYKORZYSTUJE BIBLIOTEKĘ SEABORN (zgodnie z wymogami projektu).
     """
     # 1. Filtrujemy dane
     df_ryby = df[(df['species_name'].notna()) & (df['species_name'].astype(str) != 'None')].copy()
     top_gatunki = df_ryby['species_name'].value_counts().nlargest(10).index
     df_top = df_ryby[df_ryby['species_name'].isin(top_gatunki)]
     
-    # 2. Tworzymy obiekt wykresu (Seaborn działa na bazie Matplotlib)
+    # 2. Tworzymy obiekt wykresu 
     fig, ax = plt.subplots(figsize=(10, 6))
     
-    # 3. Rysujemy piękny wykres pudełkowy w Seaborn
+    # 3. Rysujemy wykres
     sns.boxplot(
         data=df_top,
         x='ocean_temp_c',
         y='species_name',
-        palette='crest', # Profesjonalna, morska paleta barw
+        palette='crest',
         ax=ax
     )
     
@@ -71,7 +70,7 @@ def rysuj_preferencje_termiczne(df: pd.DataFrame):
     ax.set_xlabel('Temperatura Oceanu (°C)', fontsize=12)
     ax.set_ylabel('Gatunek Ryby', fontsize=12)
     
-    # Dodajemy delikatną siatkę w tle dla czytelności
+    
     ax.grid(axis='x', linestyle='--', alpha=0.7)
     
     # Zwracamy gotową figurę

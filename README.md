@@ -4,14 +4,14 @@ Interaktywny panel analityczny (Dashboard) zbudowany w Pythonie (Streamlit), sł
 
 ## Główne funkcjonalności
 
-* **Rozbudowany proces ETL:** Łączenie wielkoskalowych tabel podróży i połowów, zaawansowane mapowanie terytorialnych kodów FIPS (w tym Hawaje i Portoryko).
+* **Rozbudowany proces ETL:** Łączenie wielkoskalowych tabel podróży i połowów, zaawansowane mapowanie terytorialnych kodów FIPS.
 * **Integracja z zewnętrznymi API:**
   * **Open-Meteo API:** Dynamiczne pobieranie danych o temperaturach wód oceanicznych (SST) dla wskazanych współrzędnych.
-  * **Wikipedia REST API:** Automatyczne odnośniki do gatunków ryb z systemem obsługi kolizji nazewnictwa systematycznego (np. Dolphin -> Mahi-mahi).
+  * **Wikipedia REST API:** Automatyczne odnośniki do gatunków ryb.
 * **Uczenie Maszynowe (Scikit-Learn):**
-  * **Klasteryzacja (K-Means):** Segmentacja stanów na 4 grupy aktywności wędkarskiej (z poprawną izolacją wartości odstających/outlierów).
+  * **Klasteryzacja (K-Means):** Segmentacja stanów na 4 grupy aktywności wędkarskiej.
   * **Regresja Ridge:** Interaktywny predyktor wagi pojedynczego połowu bazujący na sezonie, stanie i wybranym gatunku (R^2 ~ 0.30).
-* **Zaawansowana Wizualizacja:** Wykorzystanie 4 różnych bibliotek (Plotly, Seaborn, Matplotlib, Altair) do analizy przestrzennej (mapy Choropleth), czasowej oraz wyznaczania okien biotopowych (wykresy pudełkowe preferencji termicznych).
+* **Zaawansowana Wizualizacja:** Wykorzystanie 4 różnych bibliotek (Plotly, Seaborn, Matplotlib, Altair) do analizy wizualnej.
 
 ## Technologie
 

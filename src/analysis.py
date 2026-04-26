@@ -30,11 +30,10 @@ def perform_state_clustering(df: pd.DataFrame, n_clusters: int = 4) -> pd.DataFr
     kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
     state_metrics['cluster'] = kmeans.fit_predict(scaled_features)
     
-    # Dynamiczne przypisywanie etykiet - teraz dla 4 klastrów
+    # Dynamiczne przypisywanie etykiet
     srednie_klastrow = state_metrics.groupby('cluster')['total_trips'].mean().sort_values()
     posortowane_id = srednie_klastrow.index.tolist()
     
-    # Dodajemy nową gradację
     cluster_names = {
         posortowane_id[0]: "Bardzo Niska Aktywność",
         posortowane_id[1]: "Niska Aktywność",
@@ -49,7 +48,7 @@ def perform_state_clustering(df: pd.DataFrame, n_clusters: int = 4) -> pd.DataFr
 def train_catch_weight_model(df: pd.DataFrame) -> tuple[Pipeline, float]:
     """
     Trenuje model regresji grzbietowej (Ridge Regression) przewidujący
-    wagę pojedynczego połowu na podstawie sezonu (wave), stanu i gatunku.
+    wagę pojedynczego połowu na podstawie sezonu, stanu i gatunku.
     
     Args:
         df (pd.DataFrame): Pełny, połączony zbiór analityczny.
@@ -72,10 +71,10 @@ def train_catch_weight_model(df: pd.DataFrame) -> tuple[Pipeline, float]:
         transformers=[
             ('cat', categorical_transformer, categorical_features)
         ],
-        remainder='passthrough' # Pozostaw zmienną 'wave' bez zmian (liczbową)
+        remainder='passthrough'
     )
     
-    # Budowa potoku (Pipeline) zapobiegającego wyciekom danych (data leakage)
+    # Budowa potoku (Pipeline) zapobiegającego wyciekom danych 
     model = Pipeline(steps=[
         ('preprocessor', preprocessor),
         ('regressor', Ridge(alpha=1.0))

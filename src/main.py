@@ -23,7 +23,6 @@ def zaladuj_dane():
     # Definiowanie ścieżek do danych
     baza_sciezki = "../data/raw" if os.path.exists("../data/raw") else "data/raw"
     
-    # Używamy wzorców (patterns) zamiast pojedynczych plików
     wzorzec_trip = f"{baza_sciezki}/trip_2024*.csv"
     wzorzec_catch = f"{baza_sciezki}/catch_2024*.csv"
     
@@ -41,7 +40,7 @@ with st.spinner("Przetwarzanie danych i pobieranie informacji z API..."):
     df_glowny = zaladuj_dane()
 
 if df_glowny.empty:
-    st.warning("Brak danych do wyświetlenia. Upewnij się, że wygenerowałeś pliki mockowe.")
+    st.warning("Brak danych do wyświetlenia.")
     st.stop()
 
 # Pasek boczny na filtry
@@ -85,7 +84,6 @@ with zakladka_wiz:
         st.subheader("Przy jakiej temperaturze żerują dane ryby?")
         wykres_temp = rysuj_preferencje_termiczne(df_filtrowany)
         
-        # Zmieniamy .plotly_chart na .pyplot
         st.pyplot(wykres_temp, use_container_width=True)
 
 
@@ -94,7 +92,6 @@ with zakladka_ml:
     st.subheader("1. Klasteryzacja Stanów (K-Means)")
     st.markdown("Grupowanie stanów na podstawie aktywności wędkarskiej i średnich wag połowów.")
     
-    # Wywołanie funkcji i wyświetlenie tabeli (tego brakowało)
     df_klastry = perform_state_clustering(df_glowny)
     st.dataframe(df_klastry[['state', 'total_trips', 'avg_catch_weight', 'cluster_label']], use_container_width=True)
     
@@ -110,7 +107,6 @@ with zakladka_ml:
     z_stan = k1.selectbox("Wybierz Stan", df_glowny['state'].unique())
     z_fala = k2.slider("Wybierz Falę (Sezon)", 1, 6, 3)
     
-    # Wyszukiwarka gatunków (st.selectbox w Streamlit ma wbudowane wyszukiwanie)
     unikalne_gatunki = df_glowny['species_name'].dropna().astype(str).unique()
     lista_gatunkow = sorted([gatunek for gatunek in unikalne_gatunki if gatunek != 'None'])
     
@@ -121,14 +117,10 @@ with zakladka_ml:
         st.success(f"Przewidywana waga dla pojedynczego połowu: **{predykcja} lbs**")
         
         # --- NAPRAWA KOLIZJI NAZW DLA WIKIPEDII ---
-        # Słownik mapujący dziwne nazwy z NOAA na poprawne hasła w Wikipedii
         wiki_wyjatki = {
             "DOLPHIN": "Mahi-mahi",
-            # Jeśli w przyszłości znajdziesz inne błędne linki, dopisz je po przecinku, np:
-            # "JAKAŚ INNA RYBA": "Poprawna_Nazwa_Wiki"
         }
         
-        # Pobieramy nazwę z wyjątków, a jeśli jej tam nie ma, używamy standardowego formatowania
         nazwa_wiki = wiki_wyjatki.get(z_gatunek, z_gatunek.title().replace(' ', '_'))
         
         wiki_url = f"https://en.wikipedia.org/wiki/{nazwa_wiki}"
@@ -137,6 +129,5 @@ with zakladka_ml:
 # --- ZAKŁADKA 3: DANE ---
 with zakladka_dane:
     st.subheader("Oczyszczony Zbiór Danych (NOAA + API Pogodowe)")
-    # Wyświetlamy tabelę bez kolumny opisowej, jeśli by tam była
     kolumny_do_pokazania = [c for c in df_filtrowany.columns if c != 'species_desc']
     st.dataframe(df_filtrowany[kolumny_do_pokazania], use_container_width=True)

@@ -73,8 +73,6 @@ def load_data(trip_pattern: str, catch_pattern: str) -> tuple[pd.DataFrame, pd.D
     }
     
     if 'state_fips' in trips.columns:
-        # Jeśli pojawi się jakiś kod spoza listy, wyświetli się jego numer, 
-        # a nie słowo 'INNY', co ułatwi ewentualne debugowanie w przyszłości
         trips['state'] = trips['state_fips'].map(kody_stanow).fillna(trips['state_fips'].astype(str))
         
     catches['catch_weight'] = pd.to_numeric(catches['catch_weight'], errors='coerce').fillna(0)
@@ -95,10 +93,8 @@ def enrich_with_weather_api(df: pd.DataFrame) -> pd.DataFrame:
 def build_analytical_dataset(trip_pattern: str, catch_pattern: str) -> pd.DataFrame:
     """Zaktualizowany pipeline - bez scrapingu tekstu do tabeli."""
     
-    # 1. Wczytujemy pliki (zwraca krotkę dwóch tabel) i od razu je łączymy
     zlaczone_dane = join_noaa_tables(load_data(trip_pattern, catch_pattern))
     
-    # 2. Używamy natywnego pandasowego .pipe() do dodania API pogodowego
     final_df = zlaczone_dane.pipe(enrich_with_weather_api)
     
     return final_df
